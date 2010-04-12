@@ -1,0 +1,19 @@
+--- 
+config: 
+  default_options:
+    notify_staff: &notify_staff_defaults
+      connection: support.engineyard.com:2233
+processes: 
+  monit:
+    mongrel: 
+      mem_limit_exceeded: 
+        - snapshot
+        - restart
+        - notify_staff: 
+            <<: *notify_staff_defaults
+      __default:
+        - notify_staff:
+            <<: *notify_staff_defaults
+    __default:
+        - notify_staff:
+            <<: *notify_staff_defaults
