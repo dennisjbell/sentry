@@ -5,14 +5,53 @@
 require 'yaml'
 require 'pp'
 
-# Load rules
-ROOT = "#{File.dirname(__FILE__)}"
-rules = YAML.load_file(File.join(ROOT,'rules.yml'))
+module Sentry
 
-# Process command line
-(platform, process, condition, *args) = ARGV
-(process_name,process_id) =process.split(/_(?=[^_]*$)/) 
+  class << self
+    def rules 
+      reload() unless @rules
+      return @rules
+    end
 
+    def reload
+      @rules = YAML.load_file(File.join(File.dirname(__FILE__),'rules.yml'))
+    end
+  end
+
+  class Task
+
+    def initialize(platform, process, condition, *args)
+      (process_type,process_id) =process.split(/_(?=[^_]*$)/) 
+      @request = {
+        :platform => platform,
+	:process_type => process_type,
+	:process_id => process_id,
+	:condition => condition,
+	:arguments => args,
+	:request_time => Time.new()
+      }
+    end
+
+    def process
+      `echo 'eystuff #{@request.pretty_inspect} ' | nc localhost 5678`
+    end
+
+    private
+
+    def build_task_list
+      
+    end
+
+    def dotask
+    end
+
+  end
+end
+
+task = Sentry::Task.new(*ARGV)
+task.process()
+
+__END__
 # Find what to do
 to_do_options = [
   rules['processes'].fetch(platform,{}).fetch(process_name,{}).fetch(condition,nil),
