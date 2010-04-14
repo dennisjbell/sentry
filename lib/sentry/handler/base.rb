@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'json'
+
 module Sentry
   module Handler
     class Base
@@ -7,7 +10,7 @@ module Sentry
 	@log = logObj
       end
 
-      def snapshot(status)
+      def snapshot(status,*args)
         r = status[:snapshot] = {}
 	r[:results] = {
 	  :disk => `df -hT`,
@@ -23,7 +26,7 @@ module Sentry
 	r[:complete] = true
       end
 
-      def notify_support(status)
+      def notify_support(status,*args)
         r = status[:notify_support] = {}
       end
 

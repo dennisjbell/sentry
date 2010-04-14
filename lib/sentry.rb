@@ -3,6 +3,8 @@
 # Processes requests from monit (or other) 
 
 require 'yaml'
+require 'logger'
+require 'sentry/handler'
 
 module Sentry
 
@@ -75,7 +77,7 @@ module Sentry
       (task_id,task_args) = task.respond_to?(:has_key?) ? [task.keys[0].to_sym, task.values[0]] : [task.to_sym, {}]
       handler = Sentry::Handler.getHandler(task_id,@request[:platform],@request[:process_type],@request[:condition],@request,@log)
       return if handler.nil?
-      handler.send(task_id, @results, task_args)
+      handler.send(task_id, @results, *task_args)
     end
 
     def log(msg)
