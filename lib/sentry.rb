@@ -3,7 +3,6 @@
 # Processes requests from monit (or other) 
 
 require 'yaml'
-require 'pp'
 
 module Sentry
 
@@ -14,7 +13,7 @@ module Sentry
     end
 
     def reload
-      @rules = YAML.load_file(File.join(File.dirname(__FILE__),'rules.yml'))
+      @rules = YAML.load_file(File.join(File.dirname(__FILE__),'..','rules.yml'))
     end
   end
 
@@ -28,8 +27,10 @@ module Sentry
 	:process_id => process_id,
 	:condition => condition,
 	:arguments => args,
-	:request_time => Time.new()
+	:request_time => Time.new(),
       }
+      @results = {}
+      @log = Logger.new('/data/sentry.log')
     end
 
     def process
@@ -71,20 +72,17 @@ module Sentry
     end
 
     def do_task(task)
-      log "  - running '#{task.respond_to?(:has_key?) ? task.keys[0].to_s + "(options: " + task.values[0].inspect + ")" : task.to_s}"
+      (task_id,task_args) = task.respond_to?(:has_key?) ? [task.keys[0].to_sym, task.values[0]] : [task.to_sym, {}]
+      handler = Sentry::Handler.getHandler(task_id,@request[:platform],@request[:process_type],@request[:condition],@request,@log)
+      return if handler.nil?
+      handler.send(task_id, @results, task_args)
     end
 
     def log(msg)
-      msg.gsub!(/'/,"'\"'\"'")
-      `echo '[SENTRY] #{msg}' | nc localhost 5678`
+      # msg.gsub!(/'/,"'\"'\"'")
+      # `echo '[SENTRY] #{msg}' | nc localhost 5678`
+      print "[SENTRY] #{msg}\n"
     end
 
   end
 end
-
-task = Sentry::Task.new(*ARGV)
-task.process()
-
-__END__
-
-
