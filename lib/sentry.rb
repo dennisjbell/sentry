@@ -21,8 +21,7 @@ module Sentry
 
   class Task
 
-    def initialize(platform, process, condition, *args)
-      (process_type,process_id) =process.split(/_(?=[^_]*$)/) 
+    def initialize(platform, process_type, condition, process_id, *args)
       @request = {
         :platform => platform,
 	:process_type => process_type,
@@ -77,7 +76,7 @@ module Sentry
       (task_id,task_args) = task.respond_to?(:has_key?) ? [task.keys[0].to_sym, task.values[0]] : [task.to_sym, {}]
       handler = Sentry::Handler.getHandler(task_id,@request[:platform],@request[:process_type],@request[:condition],@request,@log)
       return if handler.nil?
-      handler.send(task_id, @results, *task_args)
+      handler.send(task_id, @results)
     end
 
     def log(msg)
